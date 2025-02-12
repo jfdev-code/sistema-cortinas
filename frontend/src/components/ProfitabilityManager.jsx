@@ -93,7 +93,7 @@ function ProfitabilityManager() {
 
         try {
             const response = await fetch(
-                `http://localhost:8000/api/v1/rentabilidad/calcular-precio/${orderId}?` +
+                `${API_BASE_URL}/api/v1/rentabilidad/calcular-precio/${orderId}?` +
                 `rentabilidad=${calculatorInputs.rentabilidad / 100}`
             );
 
