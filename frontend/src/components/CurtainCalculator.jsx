@@ -499,17 +499,9 @@ const CurtainCalculator = () => {
               <p><strong>Multiplicador:</strong> {details.multiplicador}</p>
             </div>
             <div className="col-md-6">
-              <h5>Costos y Precio</h5>
+              <h5>Precio</h5>
               <table className="table">
                 <tbody>
-                  <tr>
-                    <td>Costo Base</td>
-                    <td>${costoBase.toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td>Rentabilidad (30%)</td>
-                    <td>${rentabilidad.toFixed(2)}</td>
-                  </tr>
                   <tr className="table-success">
                     <td><strong>Precio Final</strong></td>
                     <td><strong>${precioFinal.toFixed(2)}</strong></td>
