@@ -44,58 +44,38 @@ const CurtainCalculator = () => {
   // Función para obtener los detalles de un diseño específico
   const fetchDisenoDetails = async (disenoId) => {
     try {
-      console.log(`Fetching design details for ID: ${disenoId}`);
-      
       const response = await fetch(`${API_BASE_URL}/api/v1/disenos/${disenoId}`);
       
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers));
-  
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Error response text:', errorText);
         throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
   
       const result = await response.json();
       
-      // Extensive logging of the result
-      console.log('Raw design data:', JSON.stringify(result, null, 2));
-      console.log('Type of result:', typeof result);
-      console.log('Result keys:', Object.keys(result));
+      console.log('Design details:', result);
   
-      // Add comprehensive type checking
-      if (!result) {
-        throw new Error('Received empty or null response');
-      }
-  
-      // Detailed checks on expected properties
-      if (!result.tipos_insumo) {
-        console.warn('Design data does not contain tipos_insumo');
-        console.warn('Full result structure:', result);
-        throw new Error('Invalid design data: missing tipos_insumo');
+      // Robust error checking
+      if (!result || !result.tipos_insumo) {
+        throw new Error('Invalid design data structure');
       }
   
       setSelectedDesign(result);
   
+      // Updated mapping to match backend response
       setFormData(prev => ({
         ...prev,
-        diseno_id: disenoId,
+        diseno_id: result.id,
         materiales: result.tipos_insumo.map(tipo => ({
-          tipo_insumo_id: tipo.tipo_insumo_id || tipo.id,
+          tipo_insumo_id: tipo.tipo_insumo_id,
           referencia_id: '',
           color_id: ''
         }))
       }));
   
     } catch (err) {
-      console.error("Comprehensive error in fetchDisenoDetails:", err);
-      
-      // More detailed error state
-      setError(`Error detallado al cargar el diseño: 
-        ${err.message}
-        Por favor, recargue la página o contacte soporte.`
-      );
+      console.error("Error fetching design details:", err);
+      setError(`Error al cargar los detalles del diseño: ${err.message}`);
     }
   };
 
