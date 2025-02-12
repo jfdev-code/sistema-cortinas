@@ -46,45 +46,31 @@ const CurtainCalculator = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/disenos/${disenoId}`);
       
-      // Log the raw response status and headers
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers));
-  
       if (!response.ok) {
-        // Try to get error details
         const errorText = await response.text();
-        console.error('Error response text:', errorText);
         throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
   
       const result = await response.json();
       
-      // Log the entire result to see its structure
-      console.log('Full design details:', JSON.stringify(result, null, 2));
-  
-      // Add more robust checking for the structure we expect
-      if (!result || !result.tipos_insumo) {
-        throw new Error('Invalid design data structure');
-      }
-  
+      // Log the entire result for debugging
+      console.log("Diseño cargado:", result);
+      
       setSelectedDesign(result);
   
-      // Flexible mapping to handle different possible property names
+      // Modify the mapping to work with the current data structure
       setFormData(prev => ({
         ...prev,
         diseno_id: disenoId,
         materiales: result.tipos_insumo.map(tipo => ({
-          tipo_insumo_id: 
-            tipo.tipo_insumo_id || 
-            tipo.tipoInsumoId || 
-            tipo.tipo_id,
-          referencia_id: '',
-          color_id: ''
+          tipo_insumo_id: tipo.tipo_insumo_id,
+          referencia_id: '',  // Keep as empty string to force selection
+          color_id: ''        // Keep as empty string to force selection
         }))
       }));
     } catch (err) {
-      console.error("Detailed error in fetchDisenoDetails:", err);
-      setError(`Error al cargar el diseño: ${err.message}`);
+      console.error("Error al cargar el diseño:", err);
+      setError('Error al cargar el diseño: ' + err.message);
     }
   };
 
@@ -393,8 +379,8 @@ const CurtainCalculator = () => {
                     <h5 className="mb-0">Materiales Requeridos</h5>
                   </div>
                   <div className="card-body">
-                    {selectedDesign.tipos_insumo.map((tipoInsumo, index) => {
-                      // Obtener el nombre del tipo de insumo de manera segura
+                  {selectedDesign.tipos_insumo.map((tipoInsumo, index) => {
+                      // Find the type name from tiposInsumo state
                       const tipoInsumoData = tiposInsumo[tipoInsumo.tipo_insumo_id];
                       const nombreTipoInsumo = tipoInsumoData ? tipoInsumoData.nombre : 'Tipo de Insumo';
                       
