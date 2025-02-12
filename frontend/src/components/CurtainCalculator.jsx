@@ -254,9 +254,9 @@ const CurtainCalculator = () => {
     // Calculamos el precio final con rentabilidad
     const costoBase = details.costo_total;
     const rentabilidad = costoBase * (RENTABILIDAD_PORCENTAJE / 100);
-    const precioFinal = costoBase + rentabilidad;
+    const precioFinal = costoBase + rentabilidad;}
 
-    return (
+   return (
       <div className="container-fluid">
         <div className="card shadow">
           <div className="card-header bg-primary text-white">
@@ -283,7 +283,7 @@ const CurtainCalculator = () => {
                   ))}
                 </select>
               </div>
-    
+  
               {/* Mostrar dimensiones y materiales solo si hay un diseño seleccionado */}
               {selectedDesign && (
                 <>
@@ -320,7 +320,7 @@ const CurtainCalculator = () => {
                       />
                     </div>
                   </div>
-    
+  
                   {/* Materiales requeridos */}
                   <div className="card mb-4">
                     <div className="card-header">
@@ -356,7 +356,7 @@ const CurtainCalculator = () => {
                                   ))}
                                 </select>
                               </div>
-    
+  
                               {/* Selección de color (solo si hay referencia seleccionada) */}
                               {formData.materiales[index]?.referencia_id && (
                                 <div className="mb-2">
@@ -375,7 +375,7 @@ const CurtainCalculator = () => {
                                   </select>
                                 </div>
                               )}
-    
+  
                               {/* Información de cantidad requerida */}
                               <div className="form-text text-muted">
                                 Cantidad requerida: {tipoInsumo.cantidad_por_metro} por metro de {nombreTipoInsumo.toLowerCase()}
@@ -386,7 +386,7 @@ const CurtainCalculator = () => {
                       })}
                     </div>
                   </div>
-    
+  
                   {/* Opciones adicionales */}
                   <div className="row mb-4">
                     <div className="col-md-6">
@@ -421,7 +421,7 @@ const CurtainCalculator = () => {
                       </div>
                     </div>
                   </div>
-    
+  
                   {/* Botón de envío */}
                   <button 
                     type="submit" 
@@ -433,20 +433,20 @@ const CurtainCalculator = () => {
                 </>
               )}
             </form>
-    
+  
             {/* Mensajes de error y éxito */}
             {error && (
               <div className="alert alert-danger mt-3">
                 {error}
               </div>
             )}
-    
+  
             {success && (
               <div className="alert alert-success mt-3">
                 {success}
               </div>
             )}
-    
+  
             {/* Resumen de cotización */}
             {quotationDetails && (
               <div className="card mt-3">
@@ -489,7 +489,6 @@ const CurtainCalculator = () => {
         </div>
       </div>
     );
-};
-}
+  };
 
 export default CurtainCalculator;
