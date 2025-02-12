@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 const CurtainCalculator = () => {
   const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+  
   // Estado principal para controlar todos los datos del formulario
   const [formData, setFormData] = useState({
     diseno_id: '',
@@ -21,7 +22,7 @@ const CurtainCalculator = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-  
+  const [quotationDetails, setQuotationDetails] = useState(null);
 
   // Cargar la lista de diseños al montar el componente
   useEffect(() => {
@@ -40,61 +41,55 @@ const CurtainCalculator = () => {
     }
   };
 
-  
-
   // Función para obtener los detalles de un diseño específico
-
   const fetchDisenoDetails = async (disenoId) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/disenos/${disenoId}`);
-        if (!response.ok) throw new Error('Error al cargar el diseño');
-        
-        const disenoData = await response.json();
-        console.log("Diseño cargado:", disenoData);  // Verifica los datos
-        console.log("Tipos de insumo:", disenoData.tipos_insumo);  // Verifica si existe
-        
-        setSelectedDesign(disenoData);
+      const response = await fetch(`${API_BASE_URL}/api/v1/disenos/${disenoId}`);
+      if (!response.ok) throw new Error('Error al cargar el diseño');
+      
+      const disenoData = await response.json();
+      console.log("Diseño cargado:", disenoData);
+      console.log("Tipos de insumo:", disenoData.tipos_insumo);
+      
+      setSelectedDesign(disenoData);
 
-        // Verificar que tipos_insumo existe antes de mapearlo
-        setFormData(prev => ({
-            ...prev,
-            diseno_id: disenoId,
-            materiales: Array.isArray(disenoData.tipos_insumo) 
-                ? disenoData.tipos_insumo.map(tipo => ({
-                    tipo_insumo_id: tipo.tipo_insumo_id,
-                    referencia_id: '',
-                    color_id: ''
-                }))
-                : []  // Si no es un array, inicializa como vacío para evitar errores
-        }));
+      // Verificar que tipos_insumo existe antes de mapearlo
+      setFormData(prev => ({
+        ...prev,
+        diseno_id: disenoId,
+        materiales: Array.isArray(disenoData.tipos_insumo) 
+          ? disenoData.tipos_insumo.map(tipo => ({
+              tipo_insumo_id: tipo.tipo_insumo_id,
+              referencia_id: '',
+              color_id: ''
+            }))
+          : []
+      }));
     } catch (err) {
-        console.error("Error al cargar el diseño:", err); // Verifica el error exacto en consola
-        setError('Error al cargar el diseño: ' + err.message);
-    }
-};
-
-
-useEffect(() => {
-  const fetchTiposInsumo = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/tipos-insumo/`);
-      if (!response.ok) throw new Error('Error al cargar tipos de insumo');
-      const data = await response.json();
-      // Convertir el array a un objeto para búsqueda más fácil
-      const tiposMap = data.reduce((acc, tipo) => {
-        acc[tipo.id] = tipo;
-        return acc;
-      }, {});
-      setTiposInsumo(tiposMap);
-    } catch (err) {
-      setError('Error al cargar los tipos de insumo: ' + err.message);
+      console.error("Error al cargar el diseño:", err);
+      setError('Error al cargar el diseño: ' + err.message);
     }
   };
 
-  fetchTiposInsumo();
-}, []);
+  useEffect(() => {
+    const fetchTiposInsumo = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/tipos-insumo/`);
+        if (!response.ok) throw new Error('Error al cargar tipos de insumo');
+        const data = await response.json();
+        // Convertir el array a un objeto para búsqueda más fácil
+        const tiposMap = data.reduce((acc, tipo) => {
+          acc[tipo.id] = tipo;
+          return acc;
+        }, {});
+        setTiposInsumo(tiposMap);
+      } catch (err) {
+        setError('Error al cargar los tipos de insumo: ' + err.message);
+      }
+    };
 
-
+    fetchTiposInsumo();
+  }, []);
 
   // Manejar el cambio de diseño seleccionado
   const handleDesignChange = async (e) => {
@@ -194,6 +189,7 @@ useEffect(() => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    setQuotationDetails(null);
 
     if (!validateForm()) return;
 
@@ -221,6 +217,7 @@ useEffect(() => {
 
       const result = await response.json();
       setSuccess('Cortina creada exitosamente');
+      setQuotationDetails(result);
       
       // Resetear el formulario
       setFormData({
@@ -239,7 +236,74 @@ useEffect(() => {
     }
   };
 
-  
+  // Componente para mostrar el resumen de la cotización
+  const QuotationSummary = ({ details }) => {
+    if (!details) return null;
+
+    // Definimos un porcentaje de rentabilidad fijo (30%)
+    const RENTABILIDAD_PORCENTAJE = 30;
+
+    // Calculamos el precio final con rentabilidad
+    const costoBase = details.costo_total;
+    const rentabilidad = costoBase * (RENTABILIDAD_PORCENTAJE / 100);
+    const precioFinal = costoBase + rentabilidad;
+
+    return (
+      <div className="card mt-4">
+        <div className="card-header bg-success text-white">
+          <h4>Resumen de Cotización</h4>
+        </div>
+        <div className="card-body">
+          <div className="row">
+            <div className="col-md-6">
+              <h5>Detalles de la Cortina</h5>
+              <p><strong>Diseño:</strong> {details.cortina.diseno.nombre}</p>
+              <p><strong>Ancho:</strong> {details.cortina.ancho} cm</p>
+              <p><strong>Alto:</strong> {details.cortina.alto} cm</p>
+              <p><strong>Multiplicador:</strong> {details.cortina.multiplicador}</p>
+            </div>
+            <div className="col-md-6">
+              <h5>Costos y Precio</h5>
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Material</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unit.</th>
+                    <th>Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {details.desglose_costos.map((item, index) => (
+                    <tr key={index}>
+                      <td>{item.tipo_insumo}</td>
+                      <td>{item.cantidad.toFixed(2)}</td>
+                      <td>${item.precio_unitario.toFixed(2)}</td>
+                      <td>${item.subtotal.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="table-active">
+                    <td colSpan="3"><strong>Costo Base</strong></td>
+                    <td><strong>${costoBase.toFixed(2)}</strong></td>
+                  </tr>
+                  <tr className="table-warning">
+                    <td colSpan="3"><strong>Rentabilidad ({RENTABILIDAD_PORCENTAJE}%)</strong></td>
+                    <td><strong>${rentabilidad.toFixed(2)}</strong></td>
+                  </tr>
+                  <tr className="table-success">
+                    <td colSpan="3"><strong>Precio Final</strong></td>
+                    <td><strong>${precioFinal.toFixed(2)}</strong></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="container-fluid">
@@ -312,14 +376,14 @@ useEffect(() => {
                     <h5 className="mb-0">Materiales Requeridos</h5>
                   </div>
                   <div className="card-body">
-                 
-                  {selectedDesign.tipos_insumo.map((tipoInsumo, index) => {
+                    {selectedDesign.tipos_insumo.map((tipoInsumo, index) => {
                       // Obtener el nombre del tipo de insumo de manera segura
                       const tipoInsumoData = tiposInsumo[tipoInsumo.tipo_insumo_id];
                       const nombreTipoInsumo = tipoInsumoData ? tipoInsumoData.nombre : 'Tipo de Insumo';
                       
                       return (
                         <div key={index} className="mb-4 border-bottom pb-3">
+
                           {/* Título del tipo de insumo */}
                           <h6 className="text-primary mb-3">
                             {nombreTipoInsumo}
@@ -436,6 +500,9 @@ useEffect(() => {
               {success}
             </div>
           )}
+
+          {/* Componente de resumen de cotización */}
+          {quotationDetails && <QuotationSummary details={quotationDetails} />}
         </div>
       </div>
     </div>
