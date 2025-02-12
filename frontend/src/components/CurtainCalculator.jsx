@@ -490,5 +490,6 @@ const CurtainCalculator = () => {
       </div>
     );
 };
+}
 
 export default CurtainCalculator;
