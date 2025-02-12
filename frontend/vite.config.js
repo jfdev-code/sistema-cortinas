@@ -9,15 +9,11 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: backendUrl,
+        target: 'http://localhost:8000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        secure: false,
+        ws: true
       }
     }
-  },
-  // Add build configuration
-  build: {
-    outDir: 'dist',
-    sourcemap: true
   }
-})
+});
