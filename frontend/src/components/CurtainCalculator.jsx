@@ -257,264 +257,238 @@ const CurtainCalculator = () => {
     const precioFinal = costoBase + rentabilidad;
 
     return (
-      <div className="card mt-4">
-        <div className="card-header bg-success text-white">
-          <h4>Resumen de Cotización</h4>
-        </div>
-        <div className="card-body">
-          <div className="row">
-            <div className="col-md-6">
-              <h5>Detalles de la Cortina</h5>
-              <p><strong>Diseño:</strong> {details.cortina.diseno.nombre}</p>
-              <p><strong>Ancho:</strong> {details.cortina.ancho} cm</p>
-              <p><strong>Alto:</strong> {details.cortina.alto} cm</p>
-              <p><strong>Multiplicador:</strong> {details.cortina.multiplicador}</p>
-            </div>
-            <div className="col-md-6">
-              <h5>Costos y Precio</h5>
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Material</th>
-                    <th>Cantidad</th>
-                    <th>Precio Unit.</th>
-                    <th>Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {details.desglose_costos.map((item, index) => (
-                    <tr key={index}>
-                      <td>{item.tipo_insumo}</td>
-                      <td>{item.cantidad.toFixed(2)}</td>
-                      <td>${item.precio_unitario.toFixed(2)}</td>
-                      <td>${item.subtotal.toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr className="table-active">
-                    <td colSpan="3"><strong>Costo Base</strong></td>
-                    <td><strong>${costoBase.toFixed(2)}</strong></td>
-                  </tr>
-                  <tr className="table-warning">
-                    <td colSpan="3"><strong>Rentabilidad ({RENTABILIDAD_PORCENTAJE}%)</strong></td>
-                    <td><strong>${rentabilidad.toFixed(2)}</strong></td>
-                  </tr>
-                  <tr className="table-success">
-                    <td colSpan="3"><strong>Precio Final</strong></td>
-                    <td><strong>${precioFinal.toFixed(2)}</strong></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
+      <div className="container-fluid">
+        <div className="card shadow">
+          <div className="card-header bg-primary text-white">
+            <h3 className="mb-0">Cotizador de Cortinas</h3>
           </div>
-        </div>
-      </div>
-    );
-  };
-
-  return (
-    <div className="container-fluid">
-      <div className="card shadow">
-        <div className="card-header bg-primary text-white">
-          <h3 className="mb-0">Cotizador de Cortinas</h3>
-        </div>
-        <div className="card-body">
-          <form onSubmit={handleSubmit}>
-            {/* Selección de diseño */}
-            <div className="mb-4">
-              <label htmlFor="diseno" className="form-label">Diseño de Cortina</label>
-              <select
-                id="diseno"
-                name="diseno_id"
-                className="form-select"
-                value={formData.diseno_id}
-                onChange={handleDesignChange}
-                required
-              >
-                <option value="">Seleccione un diseño</option>
-                {disenos.map(diseno => (
-                  <option key={diseno.id} value={diseno.id}>
-                    {diseno.nombre}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Mostrar dimensiones y materiales solo si hay un diseño seleccionado */}
-            {selectedDesign && (
-              <>
-                {/* Dimensiones */}
-                <div className="row mb-3">
-                  <div className="col-md-6">
-                    <label htmlFor="ancho" className="form-label">Ancho (cm)</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      id="ancho"
-                      name="ancho"
-                      value={formData.ancho}
-                      onChange={handleInputChange}
-                      required
-                      min="20"
-                      max="500"
-                      step="0.1"
-                    />
+          <div className="card-body">
+            <form onSubmit={handleSubmit}>
+              {/* Selección de diseño */}
+              <div className="mb-4">
+                <label htmlFor="diseno" className="form-label">Diseño de Cortina</label>
+                <select
+                  id="diseno"
+                  name="diseno_id"
+                  className="form-select"
+                  value={formData.diseno_id}
+                  onChange={handleDesignChange}
+                  required
+                >
+                  <option value="">Seleccione un diseño</option>
+                  {disenos.map(diseno => (
+                    <option key={diseno.id} value={diseno.id}>
+                      {diseno.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+    
+              {/* Mostrar dimensiones y materiales solo si hay un diseño seleccionado */}
+              {selectedDesign && (
+                <>
+                  {/* Dimensiones */}
+                  <div className="row mb-3">
+                    <div className="col-md-6">
+                      <label htmlFor="ancho" className="form-label">Ancho (cm)</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        id="ancho"
+                        name="ancho"
+                        value={formData.ancho}
+                        onChange={handleInputChange}
+                        required
+                        min="20"
+                        max="500"
+                        step="0.1"
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label htmlFor="alto" className="form-label">Alto (cm)</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        id="alto"
+                        name="alto"
+                        value={formData.alto}
+                        onChange={handleInputChange}
+                        required
+                        min="20"
+                        max="500"
+                        step="0.1"
+                      />
+                    </div>
                   </div>
-                  <div className="col-md-6">
-                    <label htmlFor="alto" className="form-label">Alto (cm)</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      id="alto"
-                      name="alto"
-                      value={formData.alto}
-                      onChange={handleInputChange}
-                      required
-                      min="20"
-                      max="500"
-                      step="0.1"
-                    />
-                  </div>
-                </div>
-
-                {/* Materiales requeridos */}
-                <div className="card mb-4">
-                  <div className="card-header">
-                    <h5 className="mb-0">Materiales Requeridos</h5>
-                  </div>
-                  <div className="card-body">
-                  {selectedDesign.tipos_insumo.map((tipoInsumo, index) => {
-                      // Find the type name from tiposInsumo state
-                      const tipoInsumoData = tiposInsumo[tipoInsumo.tipo_insumo_id];
-                      const nombreTipoInsumo = tipoInsumoData ? tipoInsumoData.nombre : 'Tipo de Insumo';
-                      
-                      return (
-                        <div key={index} className="mb-4 border-bottom pb-3">
-
-                          {/* Título del tipo de insumo */}
-                          <h6 className="text-primary mb-3">
-                            {nombreTipoInsumo}
-                          </h6>
-                          <div className="ms-3">
-                            {/* Selección de referencia */}
-                            <div className="mb-2">
-                              <select
-                                className="form-select"
-                                value={formData.materiales[index]?.referencia_id || ''}
-                                onChange={(e) => handleMaterialChange(index, 'referencia_id', e.target.value)}
-                                onFocus={() => {
-                                  if (!referencias[tipoInsumo.tipo_insumo_id]) {
-                                    loadReferencias(tipoInsumo.tipo_insumo_id);
-                                  }
-                                }}
-                                required
-                              >
-                                <option value="">Seleccione {nombreTipoInsumo}</option>
-                                {referencias[tipoInsumo.tipo_insumo_id]?.map(ref => (
-                                  <option key={ref.id} value={ref.id}>
-                                    {ref.codigo} - {ref.nombre}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-
-                            {/* Selección de color (solo si hay referencia seleccionada) */}
-                            {formData.materiales[index]?.referencia_id && (
+    
+                  {/* Materiales requeridos */}
+                  <div className="card mb-4">
+                    <div className="card-header">
+                      <h5 className="mb-0">Materiales Requeridos</h5>
+                    </div>
+                    <div className="card-body">
+                      {selectedDesign.tipos_insumo.map((tipoInsumo, index) => {
+                        const tipoInsumoData = tiposInsumo[tipoInsumo.tipo_insumo_id];
+                        const nombreTipoInsumo = tipoInsumoData ? tipoInsumoData.nombre : 'Tipo de Insumo';
+                        
+                        return (
+                          <div key={index} className="mb-4 border-bottom pb-3">
+                            <h6 className="text-primary mb-3">{nombreTipoInsumo}</h6>
+                            <div className="ms-3">
+                              {/* Selección de referencia */}
                               <div className="mb-2">
                                 <select
                                   className="form-select"
-                                  value={formData.materiales[index]?.color_id || ''}
-                                  onChange={(e) => handleMaterialChange(index, 'color_id', e.target.value)}
+                                  value={formData.materiales[index]?.referencia_id || ''}
+                                  onChange={(e) => handleMaterialChange(index, 'referencia_id', e.target.value)}
+                                  onFocus={() => {
+                                    if (!referencias[tipoInsumo.tipo_insumo_id]) {
+                                      loadReferencias(tipoInsumo.tipo_insumo_id);
+                                    }
+                                  }}
                                   required
                                 >
-                                  <option value="">Seleccione color para {nombreTipoInsumo}</option>
-                                  {colores[formData.materiales[index].referencia_id]?.map(color => (
-                                    <option key={color.id} value={color.id}>
-                                      {color.codigo} - {color.nombre}
+                                  <option value="">Seleccione {nombreTipoInsumo}</option>
+                                  {referencias[tipoInsumo.tipo_insumo_id]?.map(ref => (
+                                    <option key={ref.id} value={ref.id}>
+                                      {ref.codigo} - {ref.nombre}
                                     </option>
                                   ))}
                                 </select>
                               </div>
-                            )}
-
-                            {/* Información de cantidad requerida */}
-                            <div className="form-text text-muted">
-                              Cantidad requerida: {tipoInsumo.cantidad_por_metro} por metro de {nombreTipoInsumo.toLowerCase()}
+    
+                              {/* Selección de color (solo si hay referencia seleccionada) */}
+                              {formData.materiales[index]?.referencia_id && (
+                                <div className="mb-2">
+                                  <select
+                                    className="form-select"
+                                    value={formData.materiales[index]?.color_id || ''}
+                                    onChange={(e) => handleMaterialChange(index, 'color_id', e.target.value)}
+                                    required
+                                  >
+                                    <option value="">Seleccione color para {nombreTipoInsumo}</option>
+                                    {colores[formData.materiales[index].referencia_id]?.map(color => (
+                                      <option key={color.id} value={color.id}>
+                                        {color.codigo} - {color.nombre}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              )}
+    
+                              {/* Información de cantidad requerida */}
+                              <div className="form-text text-muted">
+                                Cantidad requerida: {tipoInsumo.cantidad_por_metro} por metro de {nombreTipoInsumo.toLowerCase()}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-
-                {/* Opciones adicionales */}
-                <div className="row mb-4">
-                  <div className="col-md-6">
-                    <label htmlFor="multiplicador" className="form-label">
-                      Multiplicador
-                    </label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      id="multiplicador"
-                      name="multiplicador"
-                      value={formData.multiplicador}
-                      onChange={handleInputChange}
-                      required
-                      min="1"
-                      max="10"
-                    />
-                  </div>
-                  <div className="col-12 mt-2">
-                    <div className="form-check">
-                      <input
-                        type="checkbox"
-                        className="form-check-input"
-                        id="partida"
-                        name="partida"
-                        checked={formData.partida}
-                        onChange={handleInputChange}
-                      />
-                      <label className="form-check-label" htmlFor="partida">
-                        Cortina Partida
+    
+                  {/* Opciones adicionales */}
+                  <div className="row mb-4">
+                    <div className="col-md-6">
+                      <label htmlFor="multiplicador" className="form-label">
+                        Multiplicador
                       </label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        id="multiplicador"
+                        name="multiplicador"
+                        value={formData.multiplicador}
+                        onChange={handleInputChange}
+                        required
+                        min="1"
+                        max="10"
+                      />
+                    </div>
+                    <div className="col-12 mt-2">
+                      <div className="form-check">
+                        <input
+                          type="checkbox"
+                          className="form-check-input"
+                          id="partida"
+                          name="partida"
+                          checked={formData.partida}
+                          onChange={handleInputChange}
+                        />
+                        <label className="form-check-label" htmlFor="partida">
+                          Cortina Partida
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+    
+                  {/* Botón de envío */}
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary w-100"
+                    disabled={loading}
+                  >
+                    {loading ? 'Calculando...' : 'Calcular Precio'}
+                  </button>
+                </>
+              )}
+            </form>
+    
+            {/* Mensajes de error y éxito */}
+            {error && (
+              <div className="alert alert-danger mt-3">
+                {error}
+              </div>
+            )}
+    
+            {success && (
+              <div className="alert alert-success mt-3">
+                {success}
+              </div>
+            )}
+    
+            {/* Resumen de cotización */}
+            {quotationDetails && (
+              <div className="card mt-3">
+                <div className="card-header bg-primary text-white">
+                  <h4>Resumen de Cotización</h4>
+                </div>
+                <div className="card-body">
+                  <div className="row">
+                    <div className="col-md-6">
+                      <h5>Detalles de la Cortina</h5>
+                      <p><strong>Diseño:</strong> {selectedDesign.nombre}</p>
+                      <p><strong>Ancho:</strong> {formData.ancho} cm</p>
+                      <p><strong>Alto:</strong> {formData.alto} cm</p>
+                      <p><strong>Multiplicador:</strong> {formData.multiplicador}</p>
+                    </div>
+                    <div className="col-md-6">
+                      <h5>Costos y Precio</h5>
+                      <table className="table">
+                        <tbody>
+                          <tr>
+                            <td>Costo Base</td>
+                            <td>${quotationDetails.costo_total.toFixed(2)}</td>
+                          </tr>
+                          <tr>
+                            <td>Rentabilidad (30%)</td>
+                            <td>${(quotationDetails.costo_total * 0.3).toFixed(2)}</td>
+                          </tr>
+                          <tr className="table-success">
+                            <td><strong>Precio Final</strong></td>
+                            <td><strong>${(quotationDetails.costo_total * 1.3).toFixed(2)}</strong></td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 </div>
-
-                {/* Botón de envío */}
-                <button 
-                  type="submit" 
-                  className="btn btn-primary w-100"
-                  disabled={loading}
-                >
-                  {loading ? 'Calculando...' : 'Calcular Precio'}
-                </button>
-              </>
+              </div>
             )}
-          </form>
-
-          {/* Mensajes de error y éxito */}
-          {error && (
-            <div className="alert alert-danger mt-3">
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="alert alert-success mt-3">
-              {success}
-            </div>
-          )}
-
-          {/* Componente de resumen de cotización */}
-          {quotationDetails && <QuotationSummary details={quotationDetails} />}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
 };
 
 export default CurtainCalculator;
