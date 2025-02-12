@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 function MaterialTypeManager() {
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
   const [materialTypes, setMaterialTypes] = useState([]);
   const [formData, setFormData] = useState({
     nombre: '',
@@ -15,7 +16,7 @@ function MaterialTypeManager() {
 
   const fetchMaterialTypes = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/tipos-insumo/');
+      const response = await fetch(`${API_BASE_URL}/api/v1/tipos-insumo/`);
       if (!response.ok) throw new Error('Error al cargar tipos de insumo');
       const data = await response.json();
       setMaterialTypes(data);
@@ -38,7 +39,7 @@ function MaterialTypeManager() {
     setSuccessMessage('');
 
     try {
-      const response = await fetch('http://localhost:8000/api/v1/tipos-insumo/', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/tipos-insumo/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,7 +66,7 @@ function MaterialTypeManager() {
     setSuccessMessage('');
 
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/tipos-insumo/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/tipos-insumo/${id}`, {
         method: 'DELETE'
       });
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 function ProfitabilityManager() {
+    const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
     const orderStates = [
         { 
             value: 'pendiente', 
@@ -69,7 +70,7 @@ function ProfitabilityManager() {
     const fetchOrders = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:8000/api/v1/cortinas/');
+            const response = await fetch(`${API_BASE_URL}/api/v1/cortinas/`);
             if (!response.ok) throw new Error('Error al cargar órdenes');
             
             const data = await response.json();

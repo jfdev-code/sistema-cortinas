@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
+
 function ColorManager() {
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
   const [colors, setColors] = useState([]);
   const [references, setReferences] = useState([]);
   const [formData, setFormData] = useState({
@@ -25,7 +27,7 @@ function ColorManager() {
 
   const fetchReferences = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/referencias/');
+      const response = await fetch(`${API_BASE_URL}/api/v1/referencias/`);
       if (!response.ok) throw new Error('Error al cargar referencias');
       const data = await response.json();
       setReferences(data);
@@ -37,7 +39,7 @@ function ColorManager() {
   const fetchColorsByReference = async (referenceId) => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8000/api/v1/colores/referencia/${referenceId}`);
+      const response = await fetch(`${API_BASE_URL}/api/v1/colores/referencia/${referenceId}`);
       if (!response.ok) throw new Error('Error al cargar colores');
       const data = await response.json();
       setColors(data);
@@ -72,7 +74,7 @@ function ColorManager() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8000/api/v1/colores/', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/colores/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -112,7 +114,7 @@ function ColorManager() {
     setLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/colores/${colorId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/colores/${colorId}`, {
         method: 'DELETE'
       });
 

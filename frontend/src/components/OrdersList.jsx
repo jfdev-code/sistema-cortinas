@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 function OrdersList() {
+    const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
     const orderStates = [
         { 
             value: 'pendiente', 
@@ -64,7 +65,7 @@ function OrdersList() {
 
     const fetchDesigns = async () => {
         try {
-            const response = await fetch('http://localhost:8000/api/v1/disenos/');
+            const response = await fetch(`${API_BASE_URL}/api/v1/disenos/`);
             if (!response.ok) {
                 throw new Error('Error al cargar los diseños');
             }
@@ -78,7 +79,7 @@ function OrdersList() {
     const fetchOrders = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:8000/api/v1/cortinas/');
+            const response = await fetch(`${API_BASE_URL}/api/v1/cortinas/`);
             if (!response.ok) {
                 throw new Error('Error al cargar las órdenes');
             }
@@ -108,7 +109,7 @@ function OrdersList() {
         try {
             setLoading(true);
             
-            const getResponse = await fetch(`http://localhost:8000/api/v1/cortinas/${orderId}`);
+            const getResponse = await fetch(`${API_BASE_URL}/api/v1/cortinas/${orderId}`);
             if (!getResponse.ok) {
                 throw new Error('Error al obtener la orden');
             }
@@ -132,7 +133,7 @@ function OrdersList() {
     
             console.log('Datos enviados:', JSON.stringify(updatedOrder, null, 2));
     
-            const response = await fetch(`http://localhost:8000/api/v1/cortinas/${orderId}`, {
+            const response = await fetch(`${API_BASE_URL}/api/v1/cortinas/${orderId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -164,7 +165,7 @@ function OrdersList() {
     const handleViewDetails = async (order) => {
         try {
             const response = await fetch(
-                `http://localhost:8000/api/v1/rentabilidad/calcular-precio/${order.id}?rentabilidad=0.3`
+                `${API_BASE_URL}/api/v1/rentabilidad/calcular-precio/${order.id}?rentabilidad=0.3`
             );
             if (!response.ok) {
                 throw new Error('Error al obtener detalles de rentabilidad');

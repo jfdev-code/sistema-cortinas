@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 const CurtainCalculator = () => {
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
   // Estado principal para controlar todos los datos del formulario
   const [formData, setFormData] = useState({
     diseno_id: '',
@@ -30,7 +31,7 @@ const CurtainCalculator = () => {
   // Función para cargar los diseños disponibles
   const fetchDisenos = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/disenos/');
+      const response = await fetch(`${API_BASE_URL}/api/v1/disenos/`);
       if (!response.ok) throw new Error('Error al cargar diseños');
       const data = await response.json();
       setDisenos(data);
@@ -45,7 +46,7 @@ const CurtainCalculator = () => {
 
   const fetchDisenoDetails = async (disenoId) => {
     try {
-        const response = await fetch(`http://localhost:8000/api/v1/disenos/${disenoId}`);
+        const response = await fetch(`${API_BASE_URL}/api/v1/disenos/${disenoId}`);
         if (!response.ok) throw new Error('Error al cargar el diseño');
         
         const disenoData = await response.json();
@@ -76,7 +77,7 @@ const CurtainCalculator = () => {
 useEffect(() => {
   const fetchTiposInsumo = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/tipos-insumo/');
+      const response = await fetch(`${API_BASE_URL}/api/v1/tipos-insumo/`);
       if (!response.ok) throw new Error('Error al cargar tipos de insumo');
       const data = await response.json();
       // Convertir el array a un objeto para búsqueda más fácil
@@ -116,7 +117,7 @@ useEffect(() => {
   // Cargar referencias para un tipo de insumo específico
   const loadReferencias = async (tipoInsumoId) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/referencias/tipo/${tipoInsumoId}`);
+      const response = await fetch(`${API_BASE_URL}/api/v1/referencias/tipo/${tipoInsumoId}`);
       if (!response.ok) throw new Error('Error al cargar referencias');
       const data = await response.json();
       setReferencias(prev => ({
@@ -131,7 +132,7 @@ useEffect(() => {
   // Cargar colores para una referencia específica
   const loadColores = async (referenciaId) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/colores/referencia/${referenciaId}`);
+      const response = await fetch(`${API_BASE_URL}/api/v1/colores/referencia/${referenciaId}`);
       if (!response.ok) throw new Error('Error al cargar colores');
       const data = await response.json();
       setColores(prev => ({
@@ -198,7 +199,7 @@ useEffect(() => {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/v1/cortinas/', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/cortinas/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

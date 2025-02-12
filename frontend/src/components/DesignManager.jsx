@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import EditDesignModal from './EditDesignModal';
 
 function DesignManager() {
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
   const [designs, setDesigns] = useState([]);
   const [materialTypes, setMaterialTypes] = useState([]);
   const [formData, setFormData] = useState({
@@ -22,7 +23,7 @@ function DesignManager() {
 
   const fetchDesigns = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/disenos/');
+      const response = await fetch(`${API_BASE_URL}/api/v1/disenos/`);
       if (!response.ok) throw new Error('Error al cargar diseños');
       const data = await response.json();
       setDesigns(data);
@@ -33,7 +34,7 @@ function DesignManager() {
 
   const fetchMaterialTypes = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/tipos-insumo/');
+      const response = await fetch(`${API_BASE_URL}/api/v1/tipos-insumo/`);
       if (!response.ok) throw new Error('Error al cargar tipos de insumo');
       const data = await response.json();
       setMaterialTypes(data);
@@ -94,7 +95,7 @@ function DesignManager() {
         }))
       };
 
-      const response = await fetch('http://localhost:8000/api/v1/disenos/', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/disenos/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -137,7 +138,7 @@ function DesignManager() {
     setSuccessMessage('');
 
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/disenos/${updatedDesign.id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/disenos/${updatedDesign.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

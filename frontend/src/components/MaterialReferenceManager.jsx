@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 function MaterialReferenceManager() {
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
   const [references, setReferences] = useState([]);
   const [materialTypes, setMaterialTypes] = useState([]);
   const [formData, setFormData] = useState({
@@ -20,7 +21,7 @@ function MaterialReferenceManager() {
 
   const fetchReferences = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/referencias/');
+      const response = await fetch(`${API_BASE_URL}/api/v1/referencias/`);
       if (!response.ok) throw new Error('Error al cargar referencias');
       const data = await response.json();
       setReferences(data);
@@ -31,7 +32,7 @@ function MaterialReferenceManager() {
 
   const fetchMaterialTypes = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/tipos-insumo/');
+      const response = await fetch(`${API_BASE_URL}/api/v1/tipos-insumo/`);
       if (!response.ok) throw new Error('Error al cargar tipos de insumo');
       const data = await response.json();
       setMaterialTypes(data);
@@ -71,8 +72,8 @@ function MaterialReferenceManager() {
 
     try {
       const url = editingId 
-        ? `http://localhost:8000/api/v1/referencias/${editingId}`
-        : 'http://localhost:8000/api/v1/referencias/';
+        ? `${API_BASE_URL}/api/v1/referencias/${editingId}`
+        : `${API_BASE_URL}/api/v1/referencias/`;
       
       const response = await fetch(url, {
         method: editingId ? 'PUT' : 'POST',
@@ -114,7 +115,7 @@ function MaterialReferenceManager() {
     setSuccessMessage('');
 
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/referencias/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/referencias/${id}`, {
         method: 'DELETE'
       });
 
