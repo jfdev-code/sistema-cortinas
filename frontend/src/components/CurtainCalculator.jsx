@@ -45,29 +45,46 @@ const CurtainCalculator = () => {
   const fetchDisenoDetails = async (disenoId) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/disenos/${disenoId}`);
-      if (!response.ok) throw new Error('Error al cargar el diseño');
       
-      const disenoData = await response.json();
-      console.log("Diseño cargado:", disenoData);
-      console.log("Tipos de insumo:", disenoData.tipos_insumo);
+      // Log the raw response status and headers
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers));
+  
+      if (!response.ok) {
+        // Try to get error details
+        const errorText = await response.text();
+        console.error('Error response text:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+      }
+  
+      const result = await response.json();
       
-      setSelectedDesign(disenoData);
-
-      // Verificar que tipos_insumo existe antes de mapearlo
+      // Log the entire result to see its structure
+      console.log('Full design details:', JSON.stringify(result, null, 2));
+  
+      // Add more robust checking for the structure we expect
+      if (!result || !result.tipos_insumo) {
+        throw new Error('Invalid design data structure');
+      }
+  
+      setSelectedDesign(result);
+  
+      // Flexible mapping to handle different possible property names
       setFormData(prev => ({
         ...prev,
         diseno_id: disenoId,
-        materiales: Array.isArray(disenoData.tipos_insumo) 
-          ? disenoData.tipos_insumo.map(tipo => ({
-              tipo_insumo_id: tipo.tipo_insumo_id,
-              referencia_id: '',
-              color_id: ''
-            }))
-          : []
+        materiales: result.tipos_insumo.map(tipo => ({
+          tipo_insumo_id: 
+            tipo.tipo_insumo_id || 
+            tipo.tipoInsumoId || 
+            tipo.tipo_id,
+          referencia_id: '',
+          color_id: ''
+        }))
       }));
     } catch (err) {
-      console.error("Error al cargar el diseño:", err);
-      setError('Error al cargar el diseño: ' + err.message);
+      console.error("Detailed error in fetchDisenoDetails:", err);
+      setError(`Error al cargar el diseño: ${err.message}`);
     }
   };
 
