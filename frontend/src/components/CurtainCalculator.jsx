@@ -198,9 +198,18 @@ const CurtainCalculator = () => {
     setError(null);
     setSuccess(null);
     setQuotationDetails(null);
-
-    if (!validateForm()) return;
-
+  
+    // Additional pre-submission logging and validation
+    console.group('Form Submission Debug');
+    console.log('Form Data:', JSON.stringify(formData, null, 2));
+    console.log('Selected Design:', selectedDesign);
+  
+    if (!validateForm()) {
+      console.error('Form validation failed');
+      console.groupEnd();
+      return;
+    }
+  
     setLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/cortinas/`, {
@@ -214,20 +223,36 @@ const CurtainCalculator = () => {
           alto: parseFloat(formData.alto),
           partida: formData.partida,
           multiplicador: parseInt(formData.multiplicador),
-          materiales: formData.materiales
+          materiales: formData.materiales.map(material => ({
+            tipo_insumo_id: material.tipo_insumo_id,
+            referencia_id: material.referencia_id,
+            color_id: material.color_id
+          }))
         })
       });
-
+  
+      console.log('Response status:', response.status);
+  
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Error al crear la cortina');
+        const errorData = await response.text();
+        console.error('Error response:', errorData);
+        throw new Error(errorData || 'Error al crear la cortina');
       }
-
+  
       const result = await response.json();
-      setSuccess('Cortina creada exitosamente');
-      setQuotationDetails(result);
       
-      // Resetear el formulario
+      console.log('Quotation result:', result);
+  
+      // Ensure we have a fallback for nombre
+      const designName = selectedDesign?.nombre || 'Diseño no especificado';
+  
+      setSuccess('Cortina creada exitosamente');
+      setQuotationDetails({
+        ...result,
+        design_name: designName  // Add a fallback
+      });
+      
+      // Reset form
       setFormData({
         diseno_id: '',
         ancho: '',
@@ -237,26 +262,17 @@ const CurtainCalculator = () => {
         materiales: []
       });
       setSelectedDesign(null);
+  
     } catch (err) {
-      setError(err.message);
+      console.error('Submission error:', err);
+      setError(`Error al crear la cortina: ${err.message}`);
     } finally {
       setLoading(false);
+      console.groupEnd();
     }
   };
 
-  // Componente para mostrar el resumen de la cotización
-  const QuotationSummary = ({ details }) => {
-    if (!details) return null;
-
-    // Definimos un porcentaje de rentabilidad fijo (30%)
-    const RENTABILIDAD_PORCENTAJE = 30;
-
-    // Calculamos el precio final con rentabilidad
-    const costoBase = details.costo_total;
-    const rentabilidad = costoBase * (RENTABILIDAD_PORCENTAJE / 100);
-    const precioFinal = costoBase + rentabilidad;}
-
-   return (
+    return (
       <div className="container-fluid">
         <div className="card shadow">
           <div className="card-header bg-primary text-white">
@@ -449,46 +465,63 @@ const CurtainCalculator = () => {
   
             {/* Resumen de cotización */}
             {quotationDetails && (
-              <div className="card mt-3">
-                <div className="card-header bg-primary text-white">
-                  <h4>Resumen de Cotización</h4>
-                </div>
-                <div className="card-body">
-                  <div className="row">
-                    <div className="col-md-6">
-                      <h5>Detalles de la Cortina</h5>
-                      <p><strong>Diseño:</strong> {selectedDesign.nombre}</p>
-                      <p><strong>Ancho:</strong> {formData.ancho} cm</p>
-                      <p><strong>Alto:</strong> {formData.alto} cm</p>
-                      <p><strong>Multiplicador:</strong> {formData.multiplicador}</p>
-                    </div>
-                    <div className="col-md-6">
-                      <h5>Costos y Precio</h5>
-                      <table className="table">
-                        <tbody>
-                          <tr>
-                            <td>Costo Base</td>
-                            <td>${quotationDetails.costo_total.toFixed(2)}</td>
-                          </tr>
-                          <tr>
-                            <td>Rentabilidad (30%)</td>
-                            <td>${(quotationDetails.costo_total * 0.3).toFixed(2)}</td>
-                          </tr>
-                          <tr className="table-success">
-                            <td><strong>Precio Final</strong></td>
-                            <td><strong>${(quotationDetails.costo_total * 1.3).toFixed(2)}</strong></td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <QuotationSummary details={quotationDetails} />
             )}
           </div>
         </div>
       </div>
     );
   };
+  
+  const QuotationSummary = ({ details }) => {
+    if (!details) return null;
+  
+    // Definimos un porcentaje de rentabilidad fijo (30%)
+    const RENTABILIDAD_PORCENTAJE = 30;
+  
+    // Calculamos el precio final con rentabilidad
+    const costoBase = details.costo_total;
+    const rentabilidad = costoBase * (RENTABILIDAD_PORCENTAJE / 100);
+    const precioFinal = costoBase + rentabilidad;
+  
+    return (
+      <div className="card mt-3">
+        <div className="card-header bg-primary text-white">
+          <h4>Resumen de Cotización</h4>
+        </div>
+        <div className="card-body">
+          <div className="row">
+            <div className="col-md-6">
+              <h5>Detalles de la Cortina</h5>
+              <p><strong>Diseño:</strong> {details.design_name}</p>
+              <p><strong>Ancho:</strong> {details.ancho} cm</p>
+              <p><strong>Alto:</strong> {details.alto} cm</p>
+              <p><strong>Multiplicador:</strong> {details.multiplicador}</p>
+            </div>
+            <div className="col-md-6">
+              <h5>Costos y Precio</h5>
+              <table className="table">
+                <tbody>
+                  <tr>
+                    <td>Costo Base</td>
+                    <td>${costoBase.toFixed(2)}</td>
+                  </tr>
+                  <tr>
+                    <td>Rentabilidad (30%)</td>
+                    <td>${rentabilidad.toFixed(2)}</td>
+                  </tr>
+                  <tr className="table-success">
+                    <td><strong>Precio Final</strong></td>
+                    <td><strong>${precioFinal.toFixed(2)}</strong></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+    };
+  
+  export default CurtainCalculator;
 
-export default CurtainCalculator;
