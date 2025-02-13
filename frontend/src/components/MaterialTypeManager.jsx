@@ -7,7 +7,7 @@ function MaterialTypeManager() {
     nombre: '',
     descripcion: ''
   });
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
@@ -62,7 +62,7 @@ function MaterialTypeManager() {
       return;
     }
 
-    setError(null);
+    setError('');
     setSuccessMessage('');
 
     try {
@@ -72,13 +72,13 @@ function MaterialTypeManager() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'No se puede eliminar el tipo de insumo');
+        throw new Error(errorData.detail || 'No se puede eliminar el tipo de insumo ya que tiene referencias asociadas');
       }
 
       setSuccessMessage('Tipo de insumo eliminado exitosamente');
       fetchMaterialTypes();
     } catch (err) {
-      setError(err.message);
+      setError('Tipo de insumo aun tiene referencias asociadas');
     }
   };
 
