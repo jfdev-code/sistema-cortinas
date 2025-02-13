@@ -1,6 +1,6 @@
 # app/crud/cortina_crud.py
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, or_
+from sqlalchemy import select, and_, or_, text
 from sqlalchemy.orm import selectinload, joinedload
 from typing import List, Optional, Dict, Tuple
 from decimal import Decimal

@@ -185,10 +185,10 @@ async def delete_referencia(db: AsyncSession, referencia_id: int) -> bool:
             return False
 
         # Check for dependencies
-        if db_ref.colores or db_ref.inventarios:
-            raise ValueError(
-                "No se puede eliminar la referencia porque tiene colores o inventario asociado"
-            )
+        # if db_ref.colores or db_ref.inventarios:
+        #     raise ValueError(
+        #         "No se puede eliminar la referencia porque tiene colores o inventario asociado"
+        #     )
 
         await tx.delete(db_ref)
         return True
