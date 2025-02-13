@@ -7,7 +7,7 @@ DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite+aiosqlite:///./cortinas.db')
 
 async def run_migration():
     """
-    Ejecuta la migración de la base de datos para añadir las columnas de costos.
+    Ejecuta la migración de la base de datos para añadir las columnas de cliente, telefono y email.
     Maneja las particularidades de SQLite y asegura una migración segura y consistente.
     """
     engine = create_async_engine(
@@ -28,9 +28,9 @@ async def run_migration():
 
             # Definimos las columnas a añadir con tipos compatibles con SQLite
             new_columns = [
-                ("costo_materiales", "REAL DEFAULT 0.0 NOT NULL"),
-                ("costo_mano_obra", "REAL DEFAULT 0.0 NOT NULL"),
-                ("costo_total", "REAL DEFAULT 0.0 NOT NULL")
+                ("cliente", "TEXT"),
+                ("telefono", "TEXT"),
+                ("email", "TEXT")
             ]
 
             # Añadimos las columnas que faltan
@@ -48,19 +48,6 @@ async def run_migration():
                         raise
                 else:
                     print(f"ℹ️ La columna {column_name} ya existe")
-
-            # Actualizamos los valores existentes para mantener la consistencia
-            try:
-                update_statement = text("""
-                    UPDATE cortinas 
-                    SET costo_total = COALESCE(costo_materiales, 0) + COALESCE(costo_mano_obra, 0)
-                    WHERE costo_total = 0
-                """)
-                await conn.execute(update_statement)
-                print("\n✅ Valores actualizados correctamente")
-            except Exception as e:
-                print(f"❌ Error al actualizar valores: {str(e)}")
-                raise
 
             # Verificamos la estructura final para confirmar los cambios
             print("\n📊 Estructura final de la tabla:")

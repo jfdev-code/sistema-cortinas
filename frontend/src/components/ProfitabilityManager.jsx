@@ -26,6 +26,12 @@ function ProfitabilityManager() {
             label: 'Entregado', 
             backgroundColor: '#6c757d',  // Gray
             textColor: '#ffffff'         // White text
+        },
+        { 
+            value: 'cancelado', 
+            label: 'Cancelado', 
+            backgroundColor: '#c21d1d', // Red  
+            textColor: '#ffffff'      // White text
         }
     ];
 

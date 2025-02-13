@@ -67,6 +67,9 @@ async def verificar_relaciones_diseno(db: AsyncSession, diseno_id: int):
             ti.nombre as tipo_nombre,
             r.codigo as referencia_codigo,
             r.precio_unitario
+            cliente
+            telefono 
+            email 
         FROM disenos d
         JOIN diseno_tipos_insumo dti ON d.id = dti.diseno_id
         JOIN tipos_insumo ti ON dti.tipo_insumo_id = ti.id
@@ -132,7 +135,11 @@ async def crear_cortina(db: AsyncSession, cortina: CortinaCreate) -> Cortina:
             estado="pendiente",
             notas=cortina.notas or "",
             fecha_creacion=datetime.utcnow(),
-            fecha_actualizacion=datetime.utcnow()
+            fecha_actualizacion=datetime.utcnow(),
+            cliente=cortina.cliente,  # Use the input client name
+            telefono=cortina.telefono,  # Use the input phone
+            email=cortina.email  # Use the input email
+
         )
         
         tx.add(db_cortina)
@@ -147,7 +154,7 @@ async def crear_cortina(db: AsyncSession, cortina: CortinaCreate) -> Cortina:
         db_cortina.costo_total = costos['total']
 
         # Actualizar inventario
-        await actualizar_inventario_cortina(tx, db_cortina, diseno)
+        # await actualizar_inventario_cortina(tx, db_cortina, diseno)
         
         return db_cortina
 
@@ -277,17 +284,17 @@ async def update_cortina(
             db_cortina.alto != old_alto or 
             db_cortina.multiplicador != old_multiplicador):
             
-            # Reverse previous inventory changes
-            await revertir_cambios_inventario(
-                tx, db_cortina, diseno,
-                old_ancho, old_alto, old_multiplicador
-            )
+            # # Reverse previous inventory changes
+            # await revertir_cambios_inventario(
+            #     tx, db_cortina, diseno,
+            #     old_ancho, old_alto, old_multiplicador
+            # )
             
             # Calculate new costs
             db_cortina.costo_total = await calcular_costos_detallados(tx, db_cortina, diseno)
             
             # Update inventory with new quantities
-            await actualizar_inventario_cortina(tx, db_cortina, diseno)
+            # await actualizar_inventario_cortina(tx, db_cortina, diseno)
 
         db_cortina.fecha_actualizacion = datetime.utcnow()
         return db_cortina
@@ -321,11 +328,11 @@ async def delete_cortina(db: AsyncSession, cortina_id: int) -> bool:
         diseno = db_cortina.diseno
 
         # Restore inventory
-        await revertir_cambios_inventario(
-            tx, db_cortina, diseno,
-            db_cortina.ancho, db_cortina.alto,
-            db_cortina.multiplicador
-        )
+        # await revertir_cambios_inventario(
+        #     tx, db_cortina, diseno,
+        #     db_cortina.ancho, db_cortina.alto,
+        #     db_cortina.multiplicador
+        # )
         
         await tx.delete(db_cortina)
         return True
@@ -444,109 +451,109 @@ async def verificar_stock_suficiente(
     
     return errores
 
-async def actualizar_inventario_cortina(
-    db: AsyncSession,
-    cortina: Cortina,
-    diseno: Diseno
-) -> None:
-    """
-    Update inventory when creating a curtain, discounting necessary materials.
+# async def actualizar_inventario_cortina(
+#     db: AsyncSession,
+#     cortina: Cortina,
+#     diseno: Diseno
+# ) -> None:
+#     """
+#     Update inventory when creating a curtain, discounting necessary materials.
     
-    Args:
-        db: Async database session
-        cortina: The curtain object
-        diseno: The design with loaded relationships
+#     Args:
+#         db: Async database session
+#         cortina: The curtain object
+#         diseno: The design with loaded relationships
         
-    Raises:
-        ValueError: If inventory record is not found
-    """
-    for tipo_insumo_rel in diseno.tipos_insumo:
-        if (not tipo_insumo_rel.referencia or 
-            not tipo_insumo_rel.color):
-            continue
+#     Raises:
+#         ValueError: If inventory record is not found
+#     """
+#     for tipo_insumo_rel in diseno.tipos_insumo:
+#         if (not tipo_insumo_rel.referencia or 
+#             not tipo_insumo_rel.color):
+#             continue
 
-        cantidad_necesaria = (
-            tipo_insumo_rel.cantidad_por_metro * 
-            (cortina.ancho / 100) * 
-            cortina.multiplicador
-        )
+#         cantidad_necesaria = (
+#             tipo_insumo_rel.cantidad_por_metro * 
+#             (cortina.ancho / 100) * 
+#             cortina.multiplicador
+#         )
         
-        inventario = await get_inventario_by_color_ref(
-            db,
-            referencia_id=tipo_insumo_rel.referencia_id,
-            color_id=tipo_insumo_rel.color_id
-        )
+#         inventario = await get_inventario_by_color_ref(
+#             db,
+#             referencia_id=tipo_insumo_rel.referencia_id,
+#             color_id=tipo_insumo_rel.color_id
+#         )
         
-        if inventario:
-            movimiento = MovimientoInventario(
-                cantidad=cantidad_necesaria,
-                tipo_movimiento="salida",
-                motivo=f"Manufacturing of curtain ID: {cortina.id}"
-            )
-            await update_stock(db, inventario.id, movimiento)
-        else:
-            raise ValueError(
-                f"No inventory record found for reference {tipo_insumo_rel.referencia.codigo} "
-                f"with color {tipo_insumo_rel.color.codigo}"
-            )
+#         if inventario:
+#             movimiento = MovimientoInventario(
+#                 cantidad=cantidad_necesaria,
+#                 tipo_movimiento="salida",
+#                 motivo=f"Manufacturing of curtain ID: {cortina.id}"
+#             )
+#             await update_stock(db, inventario.id, movimiento)
+#         else:
+#             raise ValueError(
+#                 f"No inventory record found for reference {tipo_insumo_rel.referencia.codigo} "
+#                 f"with color {tipo_insumo_rel.color.codigo}"
+#             )
 
-async def revertir_cambios_inventario(
-    db: AsyncSession,
-    cortina: Cortina,
-    diseno: Diseno,
-    ancho: float,
-    alto: float,
-    multiplicador: int
-) -> None:
-    """
-    Revert inventory changes for a curtain, restoring previously used materials.
+# async def revertir_cambios_inventario(
+#     db: AsyncSession,
+#     cortina: Cortina,
+#     diseno: Diseno,
+#     ancho: float,
+#     alto: float,
+#     multiplicador: int
+# ) -> None:
+#     """
+#     Revert inventory changes for a curtain, restoring previously used materials.
     
-    This function is used when:
-    1. A curtain is being deleted
-    2. A curtain's dimensions are being modified
-    3. A mistake needs to be corrected
+#     This function is used when:
+#     1. A curtain is being deleted
+#     2. A curtain's dimensions are being modified
+#     3. A mistake needs to be corrected
     
-    Args:
-        db: Async database session
-        cortina: The curtain object
-        diseno: The design with loaded relationships
-        ancho: Original width that was used
-        alto: Original height that was used
-        multiplicador: Original multiplier that was used
+#     Args:
+#         db: Async database session
+#         cortina: The curtain object
+#         diseno: The design with loaded relationships
+#         ancho: Original width that was used
+#         alto: Original height that was used
+#         multiplicador: Original multiplier that was used
         
-    Raises:
-        ValueError: If inventory record is not found
-    """
-    for tipo_insumo_rel in diseno.tipos_insumo:
-        if (not tipo_insumo_rel.referencia or 
-            not tipo_insumo_rel.color):
-            continue
+#     Raises:
+#         ValueError: If inventory record is not found
+#     """
+#     for tipo_insumo_rel in diseno.tipos_insumo:
+#         if (not tipo_insumo_rel.referencia or 
+#             not tipo_insumo_rel.color):
+#             continue
 
-        # Calculate the quantity that was originally used
-        cantidad_necesaria = (
-            tipo_insumo_rel.cantidad_por_metro * 
-            (ancho / 100) * 
-            multiplicador
-        )
+#         # Calculate the quantity that was originally used
+#         cantidad_necesaria = (
+#             tipo_insumo_rel.cantidad_por_metro * 
+#             (ancho / 100) * 
+#             multiplicador
+#         )
         
-        inventario = await get_inventario_by_color_ref(
-            db,
-            referencia_id=tipo_insumo_rel.referencia_id,
-            color_id=tipo_insumo_rel.color_id
-        )
+#         inventario = await get_inventario_by_color_ref(
+#             db,
+#             referencia_id=tipo_insumo_rel.referencia_id,
+#             color_id=tipo_insumo_rel.color_id
+#         )
         
-        if inventario:
-            movimiento = MovimientoInventario(
-                cantidad=cantidad_necesaria,
-                tipo_movimiento="entrada",
-                motivo=f"Reversal for curtain ID: {cortina.id}"
-            )
-            await update_stock(db, inventario.id, movimiento)
-        else:
-            raise ValueError(
-                f"No inventory record found for reference {tipo_insumo_rel.referencia.codigo} "
-                f"with color {tipo_insumo_rel.color.codigo}"
-            )
+#         if inventario:
+#             movimiento = MovimientoInventario(
+#                 cantidad=cantidad_necesaria,
+#                 tipo_movimiento="entrada",
+#                 motivo=f"Reversal for curtain ID: {cortina.id}"
+#             )
+#             await update_stock(db, inventario.id, movimiento)
+#         else:
+#             raise ValueError(
+#                 f"No inventory record found for reference {tipo_insumo_rel.referencia.codigo} "
+#                 f"with color {tipo_insumo_rel.color.codigo}"
+#             )
 
 async def get_estadisticas_cortinas(
     db: AsyncSession,

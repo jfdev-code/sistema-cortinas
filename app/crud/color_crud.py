@@ -5,7 +5,7 @@ from typing import List, Optional
 from datetime import datetime
 
 from ..models.color_insumo import ColorInsumo
-from ..models.inventario_insumo import InventarioInsumo
+# from ..models.inventario_insumo import InventarioInsumo
 from ..schemas.color_insumo_schema import ColorInsumoCreate, ColorInsumoUpdate
 from ..utils.transaction import transaction_scope
 
@@ -77,13 +77,13 @@ async def get_colores_by_referencia(
     """
     query = select(ColorInsumo).where(ColorInsumo.referencia_id == referencia_id)
     
-    if solo_disponibles:
-        query = (
-            query
-            .join(ColorInsumo.inventarios)
-            .where(InventarioInsumo.cantidad > 0)
-            .distinct()
-        )
+    # if solo_disponibles:
+    #     query = (
+    #         query
+    #         .join(ColorInsumo.inventarios)
+    #         .where(InventarioInsumo.cantidad > 0)
+    #         .distinct()
+    #     )
     
     result = await db.execute(query)
     return result.scalars().all()
@@ -198,15 +198,15 @@ async def delete_color(db: AsyncSession, color_id: int) -> bool:
         if not db_color:
             return False
 
-        # Check for inventory
-        inv_stmt = select(InventarioInsumo).where(
-            InventarioInsumo.color_id == color_id
-        )
-        inv_result = await tx.execute(inv_stmt)
-        if inv_result.first():
-            raise ValueError(
-                "No se puede eliminar el color porque tiene inventario asociado"
-            )
+        # # Check for inventory
+        # inv_stmt = select(InventarioInsumo).where(
+        #     InventarioInsumo.color_id == color_id
+        # )
+        # inv_result = await tx.execute(inv_stmt)
+        # if inv_result.first():
+        #     raise ValueError(
+        #         "No se puede eliminar el color porque tiene inventario asociado"
+        #     )
 
         await tx.delete(db_color)
         return True
@@ -233,7 +233,7 @@ async def get_colores_with_stock(
         .where(
             and_(
                 ColorInsumo.referencia_id == referencia_id,
-                InventarioInsumo.cantidad >= cantidad_minima
+                # InventarioInsumo.cantidad >= cantidad_minima
             )
         )
         .order_by(ColorInsumo.nombre)

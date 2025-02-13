@@ -22,7 +22,7 @@ class CortinaBase(BaseModel):
         Asegura que las dimensiones sean razonables para una cortina.
         Por ejemplo, una cortina de 0.1cm sería demasiado pequeña.
         """
-        if v < 20:  # 20 cm como mínimo razonable
+        if v < 1:  # 20 cm como mínimo razonable
             raise ValueError("La dimensión debe ser al menos 20 cm")
         return float(Decimal(str(v)).quantize(Decimal('.01')))  # Redondea a 2 decimales
 
@@ -35,6 +35,9 @@ class CortinaCreate(CortinaBase):
     alto: float
     partida: bool = False
     multiplicador: int = 1
+    cliente: Optional[str]
+    telefono: Optional[str]
+    email: Optional[str]
     tipos_insumo: List[Dict[str, Any]]  # Lista de materiales seleccionados
     notas: Optional[str] = None
 
@@ -63,6 +66,9 @@ class CortinaUpdate(BaseModel):
     multiplicador: Optional[int] = Field(None, ge=1, le=10)
     notas: Optional[str] = Field(None, max_length=500)
     estado: Optional[str] = Field(None, description="Estado de la cortina")
+    cliente: Optional[str]
+    telefono: Optional[str]
+    email: Optional[str]
 
 class CortinaInDB(CortinaBase):
     """
@@ -77,6 +83,9 @@ class CortinaInDB(CortinaBase):
     costo_materiales: float
     costo_mano_obra: float
     costo_total: float
+    cliente: Optional[str]
+    telefono: Optional[str]
+    email: Optional[str]
 
     class Config:
         orm_mode = True

@@ -49,6 +49,9 @@ class Cortina(Base):
     costo_materiales = Column(Numeric(10, 2), nullable=False, server_default=text('0.0'))
     costo_mano_obra = Column(Numeric(10, 2), nullable=False, server_default=text('0.0'))
     costo_total = Column(Numeric(10, 2), nullable=False, server_default=text('0.0'))
+    cliente = Column(String(100), nullable=True)
+    telefono = Column(String(20), nullable=True)
+    email = Column(String(100), nullable=True)
 
     # Relationships
     diseno = relationship(

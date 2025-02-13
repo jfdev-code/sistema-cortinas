@@ -1,15 +1,21 @@
--- Añadir campos de costos a la tabla cortinas
+-- Añadir campos de cliente, telefono y email a la tabla cortinas
 ALTER TABLE cortinas 
-ADD COLUMN IF NOT EXISTS costo_materiales NUMERIC(10,2) NOT NULL DEFAULT 0.0,
-ADD COLUMN IF NOT EXISTS costo_mano_obra NUMERIC(10,2) NOT NULL DEFAULT 0.0,
-ADD COLUMN IF NOT EXISTS costo_total NUMERIC(10,2) NOT NULL DEFAULT 0.0;
+ADD COLUMN IF NOT EXISTS cliente VARCHAR(100),
+ADD COLUMN IF NOT EXISTS telefono VARCHAR(20),
+ADD COLUMN IF NOT EXISTS email VARCHAR(100);
 
--- Actualizar los registros existentes
+-- Actualizar registros existentes con valores por defecto
 UPDATE cortinas 
-SET costo_total = COALESCE(costo_materiales, 0) + COALESCE(costo_mano_obra, 0)
-WHERE costo_total = 0;
+SET 
+    cliente = COALESCE(cliente, 'Cliente Sin Nombre'),
+    telefono = COALESCE(telefono, 'Sin Teléfono'),
+    email = COALESCE(email, 'sin-email@example.com')
+WHERE 
+    cliente IS NULL OR 
+    telefono IS NULL OR 
+    email IS NULL;
 
 -- Añadir comentarios para documentación
-COMMENT ON COLUMN cortinas.costo_materiales IS 'Costo total de los materiales utilizados';
-COMMENT ON COLUMN cortinas.costo_mano_obra IS 'Costo de la mano de obra';
-COMMENT ON COLUMN cortinas.costo_total IS 'Costo total incluyendo materiales y mano de obra';
+COMMENT ON COLUMN cortinas.cliente IS 'Nombre del cliente';
+COMMENT ON COLUMN cortinas.telefono IS 'Número de teléfono del cliente';
+COMMENT ON COLUMN cortinas.email IS 'Correo electrónico del cliente';
