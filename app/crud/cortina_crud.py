@@ -6,6 +6,8 @@ from typing import List, Optional, Dict, Tuple
 from decimal import Decimal
 from datetime import datetime
 
+from app.crud.referencia_crud import get_referencia
+
 # Import our models
 from ..models.cortina import Cortina
 from ..models.diseno import Diseno, DisenoTipoInsumo
@@ -21,53 +23,106 @@ from ..utils.exceptions import CortinasException
 from ..utils.transaction import transaction_scope
 from ..crud.inventario_crud import get_inventario_by_color_ref, update_stock
 
-async def crear_cortina(db: AsyncSession, cortina: CortinaCreate) -> Cortina:
+async def get_diseno_con_relaciones(db: AsyncSession, diseno_id: int) -> Optional[Diseno]:
     """
-    Creates a new curtain with all its associated calculations and inventory updates.
+    Carga un diseño con todas sus relaciones y precios.
+    """
+    print("\n=== Debugging get_diseno_con_relaciones ===")
+    stmt = (
+        select(Diseno)
+        .options(
+            selectinload(Diseno.tipos_insumo).joinedload(DisenoTipoInsumo.tipo_insumo),
+            selectinload(Diseno.tipos_insumo).joinedload(DisenoTipoInsumo.referencia),
+            selectinload(Diseno.tipos_insumo).joinedload(DisenoTipoInsumo.color)
+        )
+        .where(Diseno.id == diseno_id)
+    )
     
-    This function handles:
-    1. Design verification and loading
-    2. Stock verification
-    3. Cost calculations
-    4. Inventory updates
-    5. Creation of the curtain record
+    result = await db.execute(stmt)
+    diseno = result.unique().scalar_one_or_none()
     
-    Args:
-        db: Async database session
-        cortina: Curtain creation data
+    if diseno:
+        print(f"Diseño cargado: {diseno.nombre}")
+        for tipo_insumo in diseno.tipos_insumo:
+            print(f"Tipo insumo: {tipo_insumo.tipo_insumo.nombre}")
+            if tipo_insumo.referencia:
+                print(f"Referencia: {tipo_insumo.referencia.codigo}, Precio: {tipo_insumo.referencia.precio_unitario}")
+            else:
+                print("No se encontró referencia")
+    
+    return diseno
+
+async def verificar_relaciones_diseno(db: AsyncSession, diseno_id: int):
+    """
+    Verifica las relaciones y referencias del diseño.
+    """
+    print("\n=== Verificando Relaciones del Diseño ===")
+    
+    # Consulta para verificar DisenoTipoInsumo
+    stmt = text("""
+        SELECT 
+            d.nombre as diseno_nombre,
+            dti.tipo_insumo_id,
+            dti.referencia_id,
+            ti.nombre as tipo_nombre,
+            r.codigo as referencia_codigo,
+            r.precio_unitario
+        FROM disenos d
+        JOIN diseno_tipos_insumo dti ON d.id = dti.diseno_id
+        JOIN tipos_insumo ti ON dti.tipo_insumo_id = ti.id
+        LEFT JOIN referencias_insumo r ON dti.referencia_id = r.id
+        WHERE d.id = :diseno_id
+    """)
+    
+    result = await db.execute(stmt, {"diseno_id": diseno_id})
+    relaciones = await result.fetchall()
+    
+    for rel in relaciones:
+        print(f"Diseño: {rel.diseno_nombre}")
+        print(f"Tipo Insumo: {rel.tipo_nombre} (ID: {rel.tipo_insumo_id})")
+        print(f"Referencia ID: {rel.referencia_id}")
+        print(f"Referencia Código: {rel.referencia_codigo}")
+        print(f"Precio Unitario: {rel.precio_unitario}")
+
+async def crear_cortina(db: AsyncSession, cortina: CortinaCreate) -> Cortina:
+    async with transaction_scope(db) as tx:
+        print("\n=== Creando Nueva Cortina ===")
+        print(f"Datos recibidos: {cortina.dict()}")
+
+        precio = 0
         
-    Returns:
-        Cortina: The newly created curtain with all its calculations
-        
-    Raises:
-        ValueError: If the design doesn't exist or there's insufficient inventory
+        # Verificar que los tipos_insumo contengan las referencias correctas
+        if cortina.tipos_insumo:
+            for tipo in cortina.tipos_insumo:
+                print(f"Tipo insumo recibido: {tipo}")
+                if 'referencia_id' in tipo:
+                    # Verificar que la referencia existe y tiene precio
+                    ref_stmt = select(ReferenciaInsumo).where(
+                        ReferenciaInsumo.id == tipo['referencia_id']
+                    )
+                    ref_result = await db.execute(ref_stmt)
+                    referencia = ref_result.scalar_one_or_none()
+                    if referencia:
+                        print(f"Referencia encontrada: {referencia.codigo}, Precio: {referencia.precio_unitario}")
+                        precio += referencia.precio_unitario
+                    else:
+                        print(f"⚠️ No se encontró la referencia con ID {tipo['referencia_id']}")
+
+    """
+    Crea una nueva cortina con sus cálculos y actualizaciones de inventario.
     """
     async with transaction_scope(db) as tx:
-        # First, verify the design exists with comprehensive eager loading
-        stmt = (
-            select(Diseno)
-            .options(
-                selectinload(Diseno.tipos_insumo)
-                .joinedload(DisenoTipoInsumo.tipo_insumo),
-                selectinload(Diseno.tipos_insumo)
-                .joinedload(DisenoTipoInsumo.referencia),
-                selectinload(Diseno.tipos_insumo)
-                .joinedload(DisenoTipoInsumo.color)
-            )
-            .where(Diseno.id == cortina.diseno_id)
-        )
-        result = await tx.execute(stmt)
-        diseno = result.unique().scalar_one_or_none()
-        
+        # Verificar el diseño
+        diseno = await get_diseno_con_relaciones(db, cortina.diseno_id)
         if not diseno:
-            raise ValueError(f"Design with ID {cortina.diseno_id} not found")
+            raise ValueError(f"Diseño con ID {cortina.diseno_id} no encontrado")
 
-        # Verify we have enough inventory
+        # Verificar stock
         errores_stock = await verificar_stock_suficiente(tx, cortina, diseno)
         if errores_stock:
-            raise ValueError(f"Insufficient stock: {', '.join(errores_stock)}")
+            raise ValueError(f"Stock insuficiente: {', '.join(errores_stock)}")
 
-        # Create the curtain with initial data
+        # Crear la cortina
         db_cortina = Cortina(
             diseno_id=cortina.diseno_id,
             ancho=cortina.ancho,
@@ -75,17 +130,23 @@ async def crear_cortina(db: AsyncSession, cortina: CortinaCreate) -> Cortina:
             partida=cortina.partida,
             multiplicador=cortina.multiplicador,
             estado="pendiente",
-            notas=cortina.notas,
-            costo_total=0.0  # Temporary placeholder
+            notas=cortina.notas or "",
+            fecha_creacion=datetime.utcnow(),
+            fecha_actualizacion=datetime.utcnow()
         )
         
         tx.add(db_cortina)
-        await tx.flush()  # To get the generated ID
+        await tx.flush()
 
-        # Calculate and update total cost
-        db_cortina.costo_total = await calcular_costo_total(tx, db_cortina, diseno)
-        
-        # Update inventory
+        rentabilidad_fija = 1.30
+
+        # Calcular costos
+        costos = await calcular_costos_detallados(tx, db_cortina, diseno,precio)
+        db_cortina.costo_materiales = costos['materiales']
+        db_cortina.costo_mano_obra = costos['mano_obra']
+        db_cortina.costo_total = costos['total']
+
+        # Actualizar inventario
         await actualizar_inventario_cortina(tx, db_cortina, diseno)
         
         return db_cortina
@@ -223,7 +284,7 @@ async def update_cortina(
             )
             
             # Calculate new costs
-            db_cortina.costo_total = await calcular_costo_total(tx, db_cortina, diseno)
+            db_cortina.costo_total = await calcular_costos_detallados(tx, db_cortina, diseno)
             
             # Update inventory with new quantities
             await actualizar_inventario_cortina(tx, db_cortina, diseno)
@@ -269,69 +330,75 @@ async def delete_cortina(db: AsyncSession, cortina_id: int) -> bool:
         await tx.delete(db_cortina)
         return True
 
-async def calcular_costo_total(
-    db: AsyncSession,
-    cortina: Cortina,
-    diseno: Diseno
-) -> float:
+async def calcular_costos_detallados(db: AsyncSession, cortina: Cortina, diseno: Diseno, precio) -> dict:
     """
-    Calculate total cost for a curtain based on its design and dimensions.
-    
-    The calculation includes:
-    1. Material costs based on dimensions and quantities
-    2. Labor costs adjusted by design complexity
-    3. Additional costs for large curtains
-    
-    Args:
-        db: Async database session
-        cortina: The curtain object with dimensions
-        diseno: The design with loaded relationships
-        
-    Returns:
-        float: The total calculated cost
-        
-    Raises:
-        ValueError: If pricing information is missing
+    Calcula los costos incluyendo logging detallado.
     """
-    costo_total = 0.0
+    print("\n=== Debugging calcular_costos_detallados ===")
+    costos = {
+        "materiales": 0.0,
+        "mano_obra": float(diseno.costo_mano_obra or 0),
+        "total": 0.0
+    }
     
-    # Calculate material costs based on width and multiplier
-    for tipo_insumo_rel in diseno.tipos_insumo:
-        if not tipo_insumo_rel.referencia:
-            continue
+    print(f"Costo mano de obra base: {costos['mano_obra']}")
+    
+    # for tipo_insumo_rel in diseno.tipos_insumo:
+    #     print(f"\nProcesando tipo insumo: {tipo_insumo_rel.tipo_insumo.nombre}")
+        
+    #     # Intentamos obtener la referencia actualizada
+    #     referencia_stmt = select(ReferenciaInsumo).where(
+    #         ReferenciaInsumo.id == tipo_insumo_rel.referencia_id
+    #     )
+    #     referencia_result = await db.execute(referencia_stmt)
+    #     referencia = referencia_result.scalar_one_or_none()
+        
+    #     if referencia:
+    #         print(f"Referencia encontrada: {referencia.codigo}")
+    #         print(f"Precio unitario: {referencia.precio_unitario}")
+            
+    #         metros_necesarios = (
+    #             tipo_insumo_rel.cantidad_por_metro * 
+    #             (cortina.ancho / 100) *
+    #             cortina.multiplicador
+    #         )
+            
+    #         costo_material = metros_necesarios * precio
+    #         costos["materiales"] += costo_material
+            
+    #         print(f"Metros necesarios: {metros_necesarios}")
+    #         print(f"Costo material: {costo_material}")
+    #     else:
+    #         print("⚠️ No se encontró la referencia")
+    
+    # Aplicar factores
+    costos["materiales"] = precio * (cortina.ancho / 100) * cortina.multiplicador
 
-        cantidad_necesaria = (
-            tipo_insumo_rel.cantidad_por_metro * 
-            (cortina.ancho / 100) *  # Convert cm to meters
-            cortina.multiplicador
-        )
-        
-        if not tipo_insumo_rel.referencia.precio_unitario:
-            raise ValueError(
-                f"Unit price not configured for reference: "
-                f"{tipo_insumo_rel.referencia.nombre}"
-            )
-        
-        costo_insumo = cantidad_necesaria * tipo_insumo_rel.referencia.precio_unitario
-        costo_total += costo_insumo
+    # factor_complejidad = {
+    #     'bajo': 0.8,
+    #     'medio': 1.0,
+    #     'alto': 1.3
+    # }.get(diseno.complejidad, 1.0)
     
-    # Add base labor cost
-    costo_total += diseno.costo_mano_obra
+    # print(f"\nFactor complejidad: {factor_complejidad}")
+    # costos["mano_obra"] *= factor_complejidad
     
-    # Apply complexity factor
-    factor_complejidad = {
-        'bajo': 0.8,
-        'medio': 1.0,
-        'alto': 1.3
-    }.get(diseno.complejidad, 1.0)
+    # if cortina.ancho > 300 or cortina.alto > 250:
+    #     print("Aplicando factor por tamaño grande (1.15)")
+    #     costos["materiales"] *= 1.15
+    #     costos["mano_obra"] *= 1.15
+
+    rentabilidad_fija = 1.30
     
-    costo_total *= factor_complejidad
+    costos["total"] = round((costos["materiales"] + costos["mano_obra"]) * rentabilidad_fija , 2)
+    print(f"\nCostos finales:")
+    print(f"Materiales: {costos['materiales']}")
+    print(f"Mano de obra: {costos['mano_obra']}")
+    print(f"Total: {costos['total']}")
     
-    # Add surcharge for large curtains
-    if cortina.ancho > 300 or cortina.alto > 250:
-        costo_total *= 1.15  # 15% surcharge
-    
-    return round(costo_total, 2)
+    return costos
+
+
 
 async def verificar_stock_suficiente(
     db: AsyncSession,

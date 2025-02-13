@@ -35,12 +35,11 @@ async def calcular_precio_venta(
         raise ValueError("Cortina no encontrada")
 
     # Costo de producción (viene de los insumos y cálculos previos)
-    costo_produccion = float(cortina.costo_total)
+    costo_produccion = float(cortina.costo_total) / 1.3  # 30% de margen
     
     # Calculamos el precio de venta necesario para la rentabilidad deseada
     # Fórmula: precio_venta = costo_produccion * (1 + rentabilidad_deseada)
     precio_venta_sugerido = costo_produccion * (1 + rentabilidad_deseada)
-    
     # Calculamos el margen de ganancia en pesos
     margen_ganancia = precio_venta_sugerido - costo_produccion
     

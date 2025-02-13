@@ -199,76 +199,51 @@ const CurtainCalculator = () => {
     setSuccess(null);
     setQuotationDetails(null);
   
-    // Additional pre-submission logging and validation
-    console.group('Form Submission Debug');
-    console.log('Form Data:', JSON.stringify(formData, null, 2));
-    console.log('Selected Design:', selectedDesign);
-  
     if (!validateForm()) {
-      console.error('Form validation failed');
-      console.groupEnd();
       return;
     }
   
     setLoading(true);
     try {
+      // Construimos el payload completo
+      const payload = {
+        diseno_id: parseInt(formData.diseno_id),
+        ancho: parseFloat(formData.ancho),
+        alto: parseFloat(formData.alto),
+        partida: formData.partida,
+        multiplicador: parseInt(formData.multiplicador),
+        tipos_insumo: formData.materiales.map(material => ({
+          tipo_insumo_id: parseInt(material.tipo_insumo_id),
+          referencia_id: parseInt(material.referencia_id),
+          color_id: parseInt(material.color_id),
+          cantidad_por_metro: 1  // O el valor que corresponda según el diseño
+        })),
+        notas: formData.notas || ""
+      };
+  
       const response = await fetch(`${API_BASE_URL}/api/v1/cortinas/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          diseno_id: parseInt(formData.diseno_id),
-          ancho: parseFloat(formData.ancho),
-          alto: parseFloat(formData.alto),
-          partida: formData.partida,
-          multiplicador: parseInt(formData.multiplicador),
-          materiales: formData.materiales.map(material => ({
-            tipo_insumo_id: material.tipo_insumo_id,
-            referencia_id: material.referencia_id,
-            color_id: material.color_id
-          }))
-        })
+        body: JSON.stringify(payload)
       });
   
-      console.log('Response status:', response.status);
-  
       if (!response.ok) {
-        const errorData = await response.text();
-        console.error('Error response:', errorData);
-        throw new Error(errorData || 'Error al crear la cortina');
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Error al crear la cortina');
       }
   
       const result = await response.json();
-      
-      console.log('Quotation result:', result);
-  
-      // Ensure we have a fallback for nombre
-      const designName = selectedDesign?.nombre || 'Diseño no especificado';
-  
       setSuccess('Cortina creada exitosamente');
       setQuotationDetails({
         ...result,
-        design_name: designName  // Add a fallback
+        design_name: selectedDesign?.nombre || 'Diseño no especificado'
       });
-      
-      // Reset form
-      setFormData({
-        diseno_id: '',
-        ancho: '',
-        alto: '',
-        partida: false,
-        multiplicador: 1,
-        materiales: []
-      });
-      setSelectedDesign(null);
-  
     } catch (err) {
-      console.error('Submission error:', err);
       setError(`Error al crear la cortina: ${err.message}`);
     } finally {
       setLoading(false);
-      console.groupEnd();
     }
   };
 
@@ -476,13 +451,15 @@ const CurtainCalculator = () => {
   const QuotationSummary = ({ details }) => {
     if (!details) return null;
   
-    // Definimos un porcentaje de rentabilidad fijo (30%)
-    const RENTABILIDAD_PORCENTAJE = 30;
-  
-    // Calculamos el precio final con rentabilidad
-    const costoBase = details.costo_total;
-    const rentabilidad = costoBase * (RENTABILIDAD_PORCENTAJE / 100);
-    const precioFinal = costoBase + rentabilidad;
+    // Función auxiliar para formatear números como moneda
+    const formatCurrency = (value) => {
+      if (value == null) return '$0.00';
+      return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 2
+      }).format(value);
+    };
   
     return (
       <div className="card mt-3">
@@ -499,12 +476,13 @@ const CurtainCalculator = () => {
               <p><strong>Multiplicador:</strong> {details.multiplicador}</p>
             </div>
             <div className="col-md-6">
-              <h5>Precio</h5>
+              <h5>Desglose de Costos</h5>
               <table className="table">
                 <tbody>
-                  <tr className="table-success">
+
+                  <tr className="table-success font-weight-bold">
                     <td><strong>Precio Final</strong></td>
-                    <td><strong>${precioFinal.toFixed(2)}</strong></td>
+                    <td><strong>{formatCurrency(details.costo_total)}</strong></td>
                   </tr>
                 </tbody>
               </table>
@@ -513,7 +491,7 @@ const CurtainCalculator = () => {
         </div>
       </div>
     );
-    };
+  };
   
   export default CurtainCalculator;
 

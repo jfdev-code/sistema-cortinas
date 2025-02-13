@@ -1,5 +1,5 @@
 # app/models/cortina.py
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey, Numeric, Text
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey, Numeric, Text, text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from sqlalchemy.sql import expression
@@ -45,6 +45,10 @@ class Cortina(Base):
         onupdate=datetime.utcnow, 
         nullable=False
     )
+
+    costo_materiales = Column(Numeric(10, 2), nullable=False, server_default=text('0.0'))
+    costo_mano_obra = Column(Numeric(10, 2), nullable=False, server_default=text('0.0'))
+    costo_total = Column(Numeric(10, 2), nullable=False, server_default=text('0.0'))
 
     # Relationships
     diseno = relationship(

@@ -180,7 +180,7 @@ function ProfitabilityManager() {
                         />
                     </div>
 
-                    <div className="mb-3">
+                    {/* <div className="mb-3">
                         <label className="form-label">Margen Mínimo Aceptable (%)</label>
                         <input
                             type="number"
@@ -191,7 +191,7 @@ function ProfitabilityManager() {
                             min="0"
                             max="100"
                         />
-                    </div>
+                    </div> */}
 
                     <div className="mb-3 form-check">
                         <input
@@ -203,13 +203,13 @@ function ProfitabilityManager() {
                             onChange={handleInputChange}
                         />
                         <label className="form-check-label" htmlFor="incluirGastosFijos">
-                            Incluir Gastos Fijos
+                            Incluir Gastos Extras
                         </label>
                     </div>
 
                     {calculatorInputs.incluirGastosFijos && (
                         <div className="mb-3">
-                            <label className="form-label">Gastos Fijos</label>
+                            <label className="form-label">Gastos Extras</label>
                             <input
                                 type="number"
                                 className="form-control"
@@ -269,12 +269,12 @@ function ProfitabilityManager() {
                                 </p>
                             </div>
 
-                            <div className="mb-3">
+                            {/* <div className="mb-3">
                                 <h6>Rentabilidad Real</h6>
                                 <p className="h4 text-warning">
                                     {((profitabilityResults.margen_ganancia / profitabilityResults.precio_venta_sugerido) * 100).toFixed(2)}%
                                 </p>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
 
