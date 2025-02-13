@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Cortina Lista para Entrega</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #6c757d;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .section {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .client-info {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cortina Lista para Entrega</h1>
+            <p>Orden #{{ order_id }}</p>
+        </div>
+        <div class="content">
+            <div class="section">
+                <h2>Detalles del Producto</h2>
+                <ul>
+                    <li><strong>Diseño:</strong> {{ design_name }}</li>
+                    <li><strong>Dimensiones:</strong> {{ dimensions }}</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>Información del Cliente</h2>
+                <div class="client-info">
+                    <p><strong>Nombre:</strong> {{ client_name }}</p>
+                    <p><strong>Teléfono:</strong> {{ client_phone }}</p>
+                    <p><strong>Email:</strong> {{ client_email }}</p>
+                </div>
+            </div>
+
+            <p><strong>Acción requerida:</strong> Por favor, preparar el producto para entrega y notificar al departamento de ventas.</p>
+        </div>
+        <div class="footer">
+            <p>Notificación generada automáticamente por el Sistema de Cortinas</p>
+            <p>Orden #{{ order_id }}</p>
+        </div>
+    </div>
+</body>
+</html>

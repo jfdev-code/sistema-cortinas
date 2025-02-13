@@ -178,6 +178,56 @@ const handleFilterSubmit = (e) => {
     fetchOrders();
 };
 
+const handleExportToExcel = async () => {
+    try {
+        // Construir los parámetros de consulta basados en los filtros actuales
+        const params = new URLSearchParams();
+        if (filters.estado) {
+            params.append('estado', filters.estado);
+        }
+        if (filters.dateStart) {
+            params.append('fecha_inicio', filters.dateStart);
+        }
+        if (filters.dateEnd) {
+            params.append('fecha_fin', filters.dateEnd);
+        }
+
+        // Realizar la petición al endpoint de exportación
+        const response = await fetch(
+            `${API_BASE_URL}/api/v1/export/cortinas/excel?${params.toString()}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error('Error al exportar datos');
+        }
+
+        // Obtener el blob del archivo
+        const blob = await response.blob();
+        
+        // Crear URL temporal para el blob
+        const url = window.URL.createObjectURL(blob);
+        
+        // Crear elemento anchor temporal para la descarga
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cortinas_${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        
+        // Limpiar
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    } catch (err) {
+        setError('Error al exportar los datos: ' + err.message);
+    }
+};
+
 const handleStateChange = async (orderId, newState) => {
     try {
         setLoading(true);
@@ -305,6 +355,17 @@ return (
                                 Aplicar Filtros
                             </button>
                         </div>
+                        <div className="col-md-2 d-flex align-items-end">
+                        <button 
+                            type="button" 
+                            className="btn btn-success" 
+                            onClick={handleExportToExcel}
+                            disabled={loading || orders.length === 0}
+                        >
+                            <i className="bi bi-file-excel me-2"></i>
+                            Exportar a Excel
+                        </button>
+                    </div>
                     </div>
                 </form>
             </div>

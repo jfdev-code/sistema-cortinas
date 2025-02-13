@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Tu Cortina está en Producción</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+        .order-details {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>¡Tu Cortina está en Producción!</h1>
+        </div>
+        <div class="content">
+            <p>Estimado/a {{ client_name }},</p>
+            
+            <p>Nos complace informarte que tu cortina ha entrado en proceso de fabricación.</p>
+            
+            <div class="order-details">
+                <h3>Detalles de tu Orden:</h3>
+                <ul>
+                    <li><strong>Número de Orden:</strong> #{{ order_id }}</li>
+                    <li><strong>Dimensiones:</strong> {{ dimensions }}</li>
+                </ul>
+            </div>
+            
+            <p>Te mantendremos informado sobre el avance de tu pedido y te notificaremos cuando esté lista para entrega.</p>
+            
+            <p>Si tienes alguna pregunta o inquietud, no dudes en contactarnos.</p>
+        </div>
+        <div class="footer">
+            <p>Este es un correo automático, por favor no respondas a este mensaje.</p>
+            <p>© 2024 Sistema de Cortinas. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>

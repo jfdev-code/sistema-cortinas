@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Orden de Manufactura</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #17a2b8;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .materials-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background-color: white;
+        }
+        .materials-table th, 
+        .materials-table td {
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            text-align: left;
+        }
+        .materials-table th {
+            background-color: #343a40;
+            color: white;
+        }
+        .materials-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: white;
+            border-radius: 5px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Orden de Manufactura #{{ order_id }}</h1>
+        </div>
+        <div class="content">
+            <div class="section">
+                <h2>Información del Diseño</h2>
+                <p><strong>Nombre del Diseño:</strong> {{ design_name }}</p>
+                <p><strong>Dimensiones:</strong> {{ dimensions }}</p>
+            </div>
+
+            <div class="section">
+                <h2>Lista de Materiales</h2>
+                <table class="materials-table">
+                    <thead>
+                        <tr>
+                            <th>Material</th>
+                            <th>Color</th>
+                            <th>Cantidad</th>
+                            <th>Ubicación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for material in materials %}
+                        <tr>
+                            <td>{{ material.nombre }}</td>
+                            <td>{{ material.color }}</td>
+                            <td>{{ material.cantidad }}</td>
+                            <td>{{ material.ubicacion }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if notes %}
+            <div class="section">
+                <h2>Notas Especiales</h2>
+                <p>{{ notes }}</p>
+            </div>
+            {% endif %}
+        </div>
+        <div class="footer">
+            <p>Orden generada automáticamente por el Sistema de Cortinas</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,6 +1,7 @@
 # app/main.py
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from .routes import export_routes
 import logging
 
 # Import database functions with their correct names
@@ -58,6 +59,7 @@ app.include_router(diseno_routes, prefix="/api/v1")
 app.include_router(cortina_routes, prefix="/api/v1")
 app.include_router(rentabilidad_routes, prefix="/api/v1")
 app.include_router(cortina_routes, prefix="/api/v1")
+app.include_router(export_routes.router, prefix="/api/v1")
 
 @app.on_event("startup")
 async def startup_event():

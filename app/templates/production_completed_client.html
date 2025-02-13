@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>¡Tu Cortina está Lista!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #28a745;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .order-details {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+        .highlight {
+            color: #28a745;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>¡Tu Cortina está Lista!</h1>
+        </div>
+        <div class="content">
+            <p>Estimado/a {{ client_name }},</p>
+            
+            <p>¡Tenemos excelentes noticias! Tu cortina ha sido completada y está lista para entrega.</p>
+            
+            <div class="order-details">
+                <h3>Detalles de tu Orden:</h3>
+                <ul>
+                    <li><strong>Número de Orden:</strong> #{{ order_id }}</li>
+                    <li><strong>Dimensiones:</strong> {{ dimensions }}</li>
+                </ul>
+            </div>
+            
+            <p>Nos pondremos en contacto contigo pronto para coordinar la entrega.</p>
+            
+            <p>Si tienes alguna pregunta o necesitas información adicional, no dudes en contactarnos.</p>
+            
+            <p class="highlight">¡Gracias por confiar en nosotros!</p>
+        </div>
+        <div class="footer">
+            <p>Este es un correo automático, por favor no respondas a este mensaje.</p>
+            <p>© 2024 Sistema de Cortinas. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>

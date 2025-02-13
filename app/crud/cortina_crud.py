@@ -245,59 +245,38 @@ async def update_cortina(
     cortina_data: CortinaUpdate
 ) -> Optional[Cortina]:
     """
-    Updates an existing curtain with comprehensive inventory management.
-    
-    Args:
-        db: Async database session
-        cortina_id: ID of the curtain to update
-        cortina_data: Updated curtain data
-        
-    Returns:
-        Optional[Cortina]: The updated curtain or None if not found
-        
-    Raises:
-        ValueError: If inventory adjustments fail
+    Updates an existing curtain with improved transaction handling.
     """
-    async with transaction_scope(db) as tx:
-        # Find the curtain with relationships
-        db_cortina = await obtener_cortina(tx, cortina_id)
-        if not db_cortina:
-            return None
-
-        # Store original values for inventory adjustment
-        old_ancho = db_cortina.ancho
-        old_alto = db_cortina.alto
-        old_multiplicador = db_cortina.multiplicador
-
-        # Update provided fields
-        update_data = cortina_data.dict(exclude_unset=True)
-        
-        # Update all fields including potentially the estado
-        for field, value in update_data.items():
-            setattr(db_cortina, field, value)
-
-        # Get design with loaded relationships
-        diseno = db_cortina.diseno
-
-        # If dimensions changed, recalculate costs and adjust inventory
-        if (db_cortina.ancho != old_ancho or 
-            db_cortina.alto != old_alto or 
-            db_cortina.multiplicador != old_multiplicador):
+    try:
+        async with transaction_scope(db) as tx:
+            # Find the curtain
+            stmt = select(Cortina).where(Cortina.id == cortina_id)
+            result = await tx.execute(stmt)
+            db_cortina = result.scalar_one_or_none()
             
-            # # Reverse previous inventory changes
-            # await revertir_cambios_inventario(
-            #     tx, db_cortina, diseno,
-            #     old_ancho, old_alto, old_multiplicador
-            # )
-            
-            # Calculate new costs
-            db_cortina.costo_total = await calcular_costos_detallados(tx, db_cortina, diseno)
-            
-            # Update inventory with new quantities
-            # await actualizar_inventario_cortina(tx, db_cortina, diseno)
+            if not db_cortina:
+                return None
 
-        db_cortina.fecha_actualizacion = datetime.utcnow()
-        return db_cortina
+            # Update provided fields
+            update_data = cortina_data.dict(exclude_unset=True)
+            for field, value in update_data.items():
+                setattr(db_cortina, field, value)
+
+            db_cortina.fecha_actualizacion = datetime.utcnow()
+            
+            # If dimensions changed, recalculate costs
+            if any(field in update_data for field in ['ancho', 'alto', 'multiplicador']):
+                diseno = await get_diseno_con_relaciones(tx, db_cortina.diseno_id)
+                if diseno:
+                    costos = await calcular_costos_detallados(tx, db_cortina, diseno)
+                    db_cortina.costo_total = costos['total']
+
+            await tx.flush()
+            return db_cortina
+
+    except Exception as e:
+        print(f"Error updating cortina: {str(e)}")
+        raise
 
 async def delete_cortina(db: AsyncSession, cortina_id: int) -> bool:
     """
